@@ -55,3 +55,4 @@ Any time you add or remove a model, you must re-run the app.
 More importantly, after selecting a new model, you must re-open the command window where you are running Copilot and run Copilot again.
 
 ![image-20260518121714239](images/image-20260518121714239.png)
+
