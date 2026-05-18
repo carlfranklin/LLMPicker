@@ -1,0 +1,29 @@
+{
+  "models": [
+    "llama3.1:8b",
+    "llama3.2-vision:11b",
+    "deepcoder",
+    "deepseek-coder:33b-instruct",
+    "deepseek-r1:14b",
+    "devstral",
+    "devstral-small-2",
+    "gemma3:12b",
+    "gemma4:latest",
+    "gemma4:26b",
+    "gpt-oss:latest",
+    "granite4.1:3b",
+    "laguna-xs.2",
+    "ministral-3",
+    "mistral-medium-3.5:latest",
+    "mistral-small3.2",
+    "nemotron-cascade-2",
+    "qwen2.5-coder:7b",
+    "qwen2.5-coder:14b",
+    "qwen3-coder:latest",
+    "qwen3.6:latest",
+    "qwen3:14b",
+    "qwen3-coder:30b",
+    "qwen3-coder-next:latest",
+    "qwen3.5:latest"
+  ]
+}
