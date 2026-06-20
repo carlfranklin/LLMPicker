@@ -20,7 +20,7 @@
             <ComboBox x:Name="ProviderCombo" SelectionChanged="ProviderCombo_SelectionChanged"/>
         </DockPanel>
 
-        <!-- Model dropdown — shown only for Ollama -->
+        <!-- Model dropdown — shown only for Ollama/FoundryLocal -->
         <DockPanel x:Name="ModelRow" Margin="0,0,0,8" Visibility="Collapsed">
             <TextBlock Text="Model:" Width="72" VerticalAlignment="Center"/>
             <ComboBox x:Name="ModelCombo" SelectionChanged="ModelCombo_SelectionChanged"/>
