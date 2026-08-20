@@ -12,9 +12,9 @@ namespace LLMPicker
         private const string EnvBaseUrl   = "COPILOT_PROVIDER_BASE_URL";
         private const string EnvModel     = "COPILOT_MODEL";
 
-        private const string OllamaUrl        = "http://192.168.1.61:11434/v1";
-        private const string FoundryLocalUrl  = "http://192.168.1.61:51331/v1";
-        private const string FoundryModelsUrl = "http://192.168.1.61:51331/v1/models";
+        private const string OllamaUrl        = "http://192.168.1.23:11434/v1";
+        private const string FoundryLocalUrl  = "http://192.168.1.23:51331/v1";
+        private const string FoundryModelsUrl = "http://192.168.1.23:51331/v1/models";
 
         private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
 
