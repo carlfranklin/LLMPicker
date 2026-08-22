@@ -1,0 +1,62 @@
+You have persistent project memory stored in three Markdown files in the root of this repository:
+
+- `AI_RULES.md` — permanent project rules, architecture, conventions, constraints, and instructions.
+- `AI_MEMORY.md` — durable knowledge discovered while working on the project: important design decisions, non-obvious behavior, solutions, APIs, dependencies, configuration details, and lessons learned.
+- `AI_CURRENT.md` — a concise checkpoint of the current task: goal, current state, relevant files/classes, what has been tried, what worked or failed, unresolved problems, and recommended next steps.
+
+## At the beginning of every session
+
+1. Check whether all three files exist.
+2. If any are missing, create them with an appropriate Markdown heading and a short explanation of their purpose.
+3. Read all three files before analyzing or modifying the project.
+4. Treat their contents as persistent knowledge from previous sessions.
+5. Inspect the current code when necessary rather than assuming that memory is more current than the source code.
+
+## While working
+
+Maintain these files continuously. Do NOT wait for me to ask you to update them, and do NOT wait until the end of the session.
+
+Whenever you discover or establish information that would be useful to a future AI session, update the appropriate memory file soon after the information becomes reliable.
+
+Examples include:
+
+- discovering how an important part of the code actually works;
+- making an architectural or implementation decision;
+- finding the cause of a difficult bug;
+- discovering that an attempted solution does not work and why;
+- changing an important configuration or dependency;
+- identifying an important file, class, method, database object, API, or relationship;
+- establishing a convention or constraint that future changes must respect;
+- reaching a meaningful checkpoint in the current task.
+
+Update `AI_CURRENT.md` particularly often during multi-step debugging or implementation work so that an unexpected context limit, crash, disconnect, or new session does not lose substantial progress.
+
+## Keep memory efficient
+
+These files are memory, not transcripts.
+
+Do not record routine commands, trivial edits, conversational history, lengthy code listings, or information that can easily be rediscovered.
+
+Prefer concise facts and summaries.
+
+When information becomes obsolete, replace or remove it rather than adding contradictory history.
+
+Keep `AI_CURRENT.md` focused only on active work. When a task is completed, move genuinely useful long-term knowledge into `AI_MEMORY.md` or `AI_RULES.md`, then remove the completed-task details from `AI_CURRENT.md`.
+
+Keep all three files small enough that they can be read at the beginning of every session without consuming an excessive amount of context.
+
+## Before potentially disruptive operations
+
+Before a large refactor, lengthy build/test cycle, major tool operation, or any operation after substantial investigation, make sure `AI_CURRENT.md` contains a recent checkpoint.
+
+## Source of truth
+
+The actual repository and current source code are authoritative.
+
+The memory files are navigation and continuity aids. If memory conflicts with the current code, investigate the discrepancy, follow the current code unless there is a clear reason not to, and correct the memory file.
+
+## Your responsibility
+
+Managing this persistent memory is part of your normal work on this project. Perform these reads and updates automatically without asking me for permission and without requiring me to remind you.
+
+After reading/creating the memory files at session startup, briefly tell me that project memory has been loaded and then proceed with my request.

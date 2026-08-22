@@ -27,6 +27,7 @@
     "qwen3.5:latest"
   ],
   "llamaCppModels": [
-    "qwen3-coder"
+    "qwen3-coder",
+    "glm45-air"
   ]
 }
