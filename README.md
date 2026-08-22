@@ -6,19 +6,25 @@ A quick way to set Environment Variables in Windows for use by GitHub Copilot CL
 
 ## Configuration
 
-In order to use it, you must first change line 13 of MainWindow.xaml.cs, which defaults to this:
+Provider URLs are built from `LLMPicker/config.json`, which defaults to this:
 
-```c#
-private const string OllamaUrl     = "http://192.168.1.61:11434/v1";
+```json
+{
+  "hostAddress": "192.168.1.23"
+}
 ```
 
-This is the address of your Ollama instance.
+This is the IP address or host name for the local LLM machine. The app currently builds these OpenAI-compatible URLs from that host:
 
-The next thing is to change the entries in models.json to the models that your Ollama instance has access to. Here is the default:
+- Ollama: `http://<hostAddress>:11434/v1`
+- FoundryLocal: `http://<hostAddress>:51331/v1`
+- Llama.cpp: `http://<hostAddress>:8080/v1`
+
+The next thing is to change the entries in `models.json` to the models that your providers have access to. Here is the default:
 
 *models.json:*
 
-```
+```json
 {
   "models": [
     "llama3.1:8b",
@@ -46,6 +52,9 @@ The next thing is to change the entries in models.json to the models that your O
     "qwen3-coder:30b",
     "qwen3-coder-next:latest",
     "qwen3.5:latest"
+  ],
+  "llamaCppModels": [
+    "qwen3-coder"
   ]
 }
 ```

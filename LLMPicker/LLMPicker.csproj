@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="config.json" CopyToOutputDirectory="PreserveNewest"/>
     <Content Include="models.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 

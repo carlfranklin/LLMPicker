@@ -12,24 +12,42 @@ namespace LLMPicker
         private const string EnvBaseUrl   = "COPILOT_PROVIDER_BASE_URL";
         private const string EnvModel     = "COPILOT_MODEL";
 
-        private const string OllamaUrl        = "http://192.168.1.23:11434/v1";
-        private const string FoundryLocalUrl  = "http://192.168.1.23:51331/v1";
-        private const string FoundryModelsUrl = "http://192.168.1.23:51331/v1/models";
+        private const string DefaultHostAddress = "192.168.1.23";
+        private const int OllamaPort            = 11434;
+        private const int FoundryLocalPort      = 51331;
+        private const int LlamaCppPort          = 8080;
+
+        private const int DefaultProviderIndex      = 0;
+        private const int OllamaProviderIndex       = 1;
+        private const int FoundryLocalProviderIndex = 2;
+        private const int LlamaCppProviderIndex     = 3;
 
         private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(10) };
 
-        private List<string> _ollamaModels  = [];
-        private List<string> _foundryModels = [];
-
-        private string? SelectedUrl => ProviderCombo.SelectedIndex switch
-        {
-            1 => OllamaUrl,
-            2 => FoundryLocalUrl,
-            _ => null,
-        };
+        private static readonly string ConfigPath =
+            Path.Combine(AppContext.BaseDirectory, "config.json");
 
         private static readonly string SettingsPath =
             Path.Combine(AppContext.BaseDirectory, "settings.json");
+
+        private readonly string _hostAddress = LoadHostAddress();
+
+        private List<string> _ollamaModels    = [];
+        private List<string> _foundryModels   = [];
+        private List<string> _llamaCppModels  = [];
+
+        private string OllamaUrl       => BuildOpenAiUrl(OllamaPort);
+        private string FoundryLocalUrl => BuildOpenAiUrl(FoundryLocalPort);
+        private string FoundryModelsUrl => $"{FoundryLocalUrl}/models";
+        private string LlamaCppUrl     => BuildOpenAiUrl(LlamaCppPort);
+
+        private string? SelectedUrl => ProviderCombo.SelectedIndex switch
+        {
+            OllamaProviderIndex       => OllamaUrl,
+            FoundryLocalProviderIndex => FoundryLocalUrl,
+            LlamaCppProviderIndex     => LlamaCppUrl,
+            _                         => null,
+        };
 
         private bool _loading = true;
 
@@ -45,30 +63,92 @@ namespace LLMPicker
         public MainWindow()
         {
             InitializeComponent();
-            LoadOllamaModels();
+            LoadModels();
             PopulateProviders();
             RefreshCurrent();
             _loading = false;
             UpdatePreview();
         }
 
-        private void LoadOllamaModels()
+        private string BuildOpenAiUrl(int port) =>
+            $"http://{_hostAddress}:{port}/v1";
+
+        private static string LoadHostAddress()
+        {
+            var hostAddress = DefaultHostAddress;
+
+            try
+            {
+                if (File.Exists(ConfigPath))
+                {
+                    using var doc = JsonDocument.Parse(File.ReadAllText(ConfigPath));
+                    if (doc.RootElement.TryGetProperty("hostAddress", out var hostEl))
+                    {
+                        var configuredHost = hostEl.GetString();
+                        if (!string.IsNullOrWhiteSpace(configuredHost))
+                            hostAddress = configuredHost;
+                    }
+                }
+            }
+            catch { /* non-critical */ }
+
+            return NormalizeHostAddress(hostAddress);
+        }
+
+        private static string NormalizeHostAddress(string hostAddress)
+        {
+            var normalized = hostAddress.Trim().TrimEnd('/');
+
+            const string httpPrefix = "http://";
+            const string httpsPrefix = "https://";
+
+            if (normalized.StartsWith(httpPrefix, StringComparison.OrdinalIgnoreCase))
+                normalized = normalized[httpPrefix.Length..];
+            else if (normalized.StartsWith(httpsPrefix, StringComparison.OrdinalIgnoreCase))
+                normalized = normalized[httpsPrefix.Length..];
+
+            return normalized;
+        }
+
+        private void LoadModels()
         {
             var configPath = Path.Combine(AppContext.BaseDirectory, "models.json");
-            if (!File.Exists(configPath)) return;
+            if (!File.Exists(configPath))
+            {
+                _llamaCppModels.Add("qwen3-coder");
+                return;
+            }
 
             try
             {
                 var json = File.ReadAllText(configPath);
-                var doc  = JsonDocument.Parse(json);
-                foreach (var el in doc.RootElement.GetProperty("models").EnumerateArray())
-                {
-                    var name = el.GetString() ?? string.Empty;
-                    if (!string.IsNullOrEmpty(name))
-                        _ollamaModels.Add(name);
-                }
+                using var doc  = JsonDocument.Parse(json);
+                _ollamaModels.AddRange(ReadModels(doc.RootElement, "models"));
+                _llamaCppModels.AddRange(ReadModels(doc.RootElement, "llamaCppModels"));
             }
             catch { /* non-critical */ }
+
+            if (_llamaCppModels.Count == 0)
+                _llamaCppModels.Add("qwen3-coder");
+        }
+
+        private static IEnumerable<string> ReadModels(JsonElement root, string propertyName)
+        {
+            if (!root.TryGetProperty(propertyName, out var modelsEl) ||
+                modelsEl.ValueKind != JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            var models = new List<string>();
+            foreach (var el in modelsEl.EnumerateArray())
+            {
+                var name = el.GetString() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(name))
+                    models.Add(name);
+            }
+
+            return models;
         }
 
         private void PopulateModelCombo(IEnumerable<string> models, string? lastModel)
@@ -83,7 +163,7 @@ namespace LLMPicker
             ModelCombo.SelectedIndex = idx >= 0 ? idx : 0;
         }
 
-        private static async Task<List<string>> FetchFoundryModelsAsync()
+        private async Task<List<string>> FetchFoundryModelsAsync()
         {
             try
             {
@@ -112,13 +192,15 @@ namespace LLMPicker
             ProviderCombo.Items.Add("Default");
             ProviderCombo.Items.Add("Ollama");
             ProviderCombo.Items.Add("FoundryLocal");
+            ProviderCombo.Items.Add("Llama.cpp");
 
             var currentUrl = GetUserEnv(EnvBaseUrl);
             ProviderCombo.SelectedIndex = currentUrl switch
             {
-                OllamaUrl       => 1,
-                FoundryLocalUrl => 2,
-                _               => 0,
+                var url when string.Equals(url, OllamaUrl, StringComparison.OrdinalIgnoreCase)       => OllamaProviderIndex,
+                var url when string.Equals(url, FoundryLocalUrl, StringComparison.OrdinalIgnoreCase) => FoundryLocalProviderIndex,
+                var url when string.Equals(url, LlamaCppUrl, StringComparison.OrdinalIgnoreCase)     => LlamaCppProviderIndex,
+                _                                                                                   => DefaultProviderIndex,
             };
         }
 
@@ -142,12 +224,14 @@ namespace LLMPicker
         {
             int idx = ProviderCombo.SelectedIndex;
 
-            if (idx == 1) // Ollama
+            if (idx == OllamaProviderIndex)
             {
                 ModelRow.Visibility = Visibility.Visible;
+                ModelCombo.IsEnabled = true;
+                ApplyBtn.IsEnabled = true;
                 PopulateModelCombo(_ollamaModels, LoadSetting("lastOllamaModel") ?? LoadSetting("lastModel"));
             }
-            else if (idx == 2) // FoundryLocal
+            else if (idx == FoundryLocalProviderIndex)
             {
                 ModelRow.Visibility  = Visibility.Visible;
                 ModelCombo.IsEnabled = false;
@@ -169,6 +253,13 @@ namespace LLMPicker
                     ModelCombo.Items.Add("(no models found)");
                     ModelCombo.SelectedIndex = 0;
                 }
+            }
+            else if (idx == LlamaCppProviderIndex)
+            {
+                ModelRow.Visibility = Visibility.Visible;
+                ModelCombo.IsEnabled = true;
+                ApplyBtn.IsEnabled = true;
+                PopulateModelCombo(_llamaCppModels, LoadSetting("lastLlamaCppModel"));
             }
             else
             {
@@ -196,8 +287,9 @@ namespace LLMPicker
                     SetUserEnv(EnvBaseUrl, SelectedUrl);
                     SetUserEnv(EnvModel,   model);
 
-                    if (providerIdx == 1)      SaveSetting("lastOllamaModel",  model);
-                    else if (providerIdx == 2) SaveSetting("lastFoundryModel", model);
+                    if (providerIdx == OllamaProviderIndex)            SaveSetting("lastOllamaModel",  model);
+                    else if (providerIdx == FoundryLocalProviderIndex) SaveSetting("lastFoundryModel", model);
+                    else if (providerIdx == LlamaCppProviderIndex)     SaveSetting("lastLlamaCppModel", model);
                 }
                 else
                 {
