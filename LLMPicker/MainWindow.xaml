@@ -25,7 +25,7 @@
             <TextBlock Text="Model:" Width="72" VerticalAlignment="Center"/>
             <ComboBox x:Name="ModelCombo" SelectionChanged="ModelCombo_SelectionChanged"/>
                     <Button x:Name="RefreshModelsBtn" Content="↻" Width="30" 
-                                                ToolTip="Refresh models from Ollama provider" Click="RefreshModelsBtn_Click"
+                                                ToolTip="Refresh models from provider" Click="RefreshModelsBtn_Click"
                             Visibility="Collapsed"/>
                 </DockPanel>
 

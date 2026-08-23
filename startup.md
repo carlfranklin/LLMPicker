@@ -59,4 +59,11 @@ The memory files are navigation and continuity aids. If memory conflicts with th
 
 Managing this persistent memory is part of your normal work on this project. Perform these reads and updates automatically without asking me for permission and without requiring me to remind you.
 
+## After each task is complete
+
+* Make sure you get a clean build before claiming the task complete.
+* Write a one paragraph commit message with no bullets, extra spaces, or CRLF characters. Do not commit to the repository - that is the user's job. The commit message should concisely summarize all work completed during the session including new features, bug fixes, architectural changes, and improvements. 
+
+* Play the Windows TADA sound after each task is complete.
+
 After reading/creating the memory files at session startup, briefly tell me that project memory has been loaded and then proceed with my request.

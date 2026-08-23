@@ -21,6 +21,7 @@ This is the IP address or host name for the local LLM machine. The app currently
 - Llama.cpp: `http://<hostAddress>:8080/v1`
 
 The next thing is to change the entries in `models.json` to the models that your providers have access to. Here is the default:
+Llama.cpp models are discovered from `/v1/models`; `llamaCppModels` is used as a fallback if the server is unavailable.
 
 *models.json:*
 
@@ -54,7 +55,7 @@ The next thing is to change the entries in `models.json` to the models that your
     "qwen3.5:latest"
   ],
   "llamaCppModels": [
-    "qwen3-coder"
+    "qwen3-coder-next"
   ]
 }
 ```

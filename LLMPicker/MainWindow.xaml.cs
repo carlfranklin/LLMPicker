@@ -109,7 +109,7 @@ namespace LLMPicker
 			var configPath = Path.Combine(AppContext.BaseDirectory, "models.json");
 			if (!File.Exists(configPath))
 			{
-				_llamaCppModels.Add("qwen3-coder");
+				_llamaCppModels.Add("qwen3-coder-next");
 				return;
 			}
 
@@ -123,7 +123,7 @@ namespace LLMPicker
 			catch { /* non-critical */ }
 
 			if (_llamaCppModels.Count == 0)
-				_llamaCppModels.Add("qwen3-coder");
+				_llamaCppModels.Add("qwen3-coder-next");
 		}
 
 		private static IEnumerable<string> ReadModels(JsonElement root, string propertyName)
@@ -274,16 +274,24 @@ namespace LLMPicker
 		private async Task HandleLlamaCppProviderSelection()
 		{
 			ModelRow.Visibility = Visibility.Visible;
+			ModelCombo.IsEnabled = false;
+			ApplyBtn.IsEnabled = false;
+			RefreshModelsBtn.Visibility = Visibility.Visible;
+			RefreshModelsBtn.Tag = ProviderType.LlamaCpp;
+			ModelCombo.Items.Clear();
+			ModelCombo.Items.Add("Loading…");
+			ModelCombo.SelectedIndex = 0;
+
+			var discoveredModels = await _providerManager.GetLlamaCppModelsAsync();
+
 			ModelCombo.IsEnabled = true;
 			ApplyBtn.IsEnabled = true;
-			RefreshModelsBtn.Visibility = Visibility.Collapsed; // Llama.cpp shows currently loaded model automatically
-            
-			var discoveredModels = await _providerManager.GetLlamaCppModelsAsync();
+
 			if (discoveredModels.Count > 0)
 			{
 				_llamaCppModels = discoveredModels;
 			}
-            
+
 			PopulateModelCombo(_llamaCppModels, _settingsManager.GetLastModel(ProviderType.LlamaCpp));
 		}
 
@@ -322,7 +330,6 @@ namespace LLMPicker
 						_llamaCppModels = discoveredModels;
 					}
 				}
-
 				if (discoveredModels.Count > 0)
 				{
 					PopulateModelCombo(discoveredModels, ModelCombo.SelectedItem as string);

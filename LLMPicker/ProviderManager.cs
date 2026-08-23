@@ -34,9 +34,9 @@
                 public string OllamaUrl => BuildOpenAiUrl(OllamaPort);
                 public string FoundryLocalUrl => BuildOpenAiUrl(FoundryLocalPort);
                 public string FoundryModelsUrl => $"{FoundryLocalUrl}/models";
-                public string LlamaCppUrl => BuildOpenAiUrl(LlamaCppPort);
+                public string LlamaCppUrl => $"http://{_hostAddress}:{LlamaCppPort}/v1";
                 public string OllamaTagsUrl => $"http://{_hostAddress}:{OllamaPort}/api/tags";
-                public string LlamaCppModelsUrl => $"http://{_hostAddress}:{LlamaCppPort}/models";
+                public string LlamaCppModelsUrl => $"{LlamaCppUrl}/models";
 
                 public ProviderManager(string hostAddress, MainWindow window)
                 {
@@ -120,32 +120,48 @@
                         }
 
                         public async Task<List<string>> GetLlamaCppModelsAsync()
-                                                {
-                                                    try
-                                                    {
-                                                        var json = await _http.GetStringAsync(LlamaCppModelsUrl);
-                                                        using var doc = JsonDocument.Parse(json);
-                                                        var models = new List<string>();
-                
-                                                        if (doc.RootElement.TryGetProperty("models", out var modelsEl))
-                                                        {
-                                                            foreach (var model in modelsEl.EnumerateArray())
-                                                            {
-                                                                if (model.TryGetProperty("name", out var nameEl))
-                                                                {
-                                                                    var name = nameEl.GetString();
-                                                                    if (!string.IsNullOrEmpty(name))
-                                                                        models.Add(name);
-                                                                }
-                                                            }
-                                                        }
-                
-                                                        return models;
-                                                    }
-                                                    catch
-                                                    {
-                                                        return [];
-                                                    }
-                                                }
+                        {
+                            try
+                            {
+                                var json = await _http.GetStringAsync(LlamaCppModelsUrl);
+                                using var doc = JsonDocument.Parse(json);
+                                var models = new List<string>();
+
+                                if (doc.RootElement.TryGetProperty("data", out var dataEl) &&
+                                    dataEl.ValueKind == JsonValueKind.Array)
+                                {
+                                    foreach (var model in dataEl.EnumerateArray())
+                                    {
+                                        AddModelId(models, model, "id");
+                                    }
+                                }
+
+                                if (doc.RootElement.TryGetProperty("models", out var modelsEl) &&
+                                    modelsEl.ValueKind == JsonValueKind.Array)
+                                {
+                                    foreach (var model in modelsEl.EnumerateArray())
+                                    {
+                                        AddModelId(models, model, "name");
+                                        AddModelId(models, model, "id");
+                                    }
+                                }
+
+                                return models;
+                            }
+                            catch
+                            {
+                                return [];
+                            }
+                        }
+
+                        private static void AddModelId(List<string> models, JsonElement model, string propertyName)
+                        {
+                            if (!model.TryGetProperty(propertyName, out var valueEl)) return;
+
+                            var value = valueEl.GetString();
+                            if (!string.IsNullOrWhiteSpace(value) && !models.Contains(value))
+                                models.Add(value);
+                        }
+
                     }
                 }
