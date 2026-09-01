@@ -12,7 +12,7 @@ namespace LLMPicker
 		private const string EnvBaseUrl = "COPILOT_PROVIDER_BASE_URL";
 		private const string EnvModel = "COPILOT_MODEL";
 
-		private const string DefaultHostAddress = "192.168.1.23";
+		private const string DefaultHostAddress = "192.168.1.155";
 		private const int OllamaPort = 11434;
 		private const int FoundryLocalPort = 51331;
 		private const int LlamaCppPort = 8080;

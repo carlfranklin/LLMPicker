@@ -10,7 +10,7 @@ Provider URLs are built from `LLMPicker/config.json`, which defaults to this:
 
 ```json
 {
-  "hostAddress": "192.168.1.23"
+  "hostAddress": "192.168.1.155"
 }
 ```
 
